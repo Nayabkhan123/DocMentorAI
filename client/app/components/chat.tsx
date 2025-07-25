@@ -1,4 +1,5 @@
 'use client'
+import { SquarePen } from 'lucide-react'
 import * as React from 'react'
 
 interface Doc {
@@ -61,26 +62,31 @@ const ChatComponent: React.FC = () => {
     scrollToBottom();
   }, [messages]);
   return (
-    <div className="min-h-screen p-10 pb-24 bg-zinc-900 text-white overflow-y-auto">
+    <div className="min-h-screen p-10 pb-24 bg-zinc-900 text-white">
       <div className="space-y-4 mb-16">
+        <div >
+          {
+            messages?.length==0 && <div className='w-full flex justify-center items-start mt-[10vh] text-2xl font-semibold gap-4'><p>Start asking questions</p><span><SquarePen /></span></div>
+          }
+        </div>
         {messages.map((msg, index) => (
           <div
             key={index}
             className={`p-3 rounded-lg w-fit whitespace-pre-wrap ${
-              msg.role === 'user' ? 'border border-slate-700 self-end ml-auto max-w-xl' : 'bg-zinc-800 max-w-3xl'
+              msg.role === 'user' ? 'bg-slate-800 border-2 border-slate-700 self-end ml-auto max-w-xl' : '  max-w-full'
             }`}
           >
             <p>{msg?.content}</p>
-            {msg?.document?.length > 0 && (
+            {msg?.document && msg.document.length > 0 && (
               <details className="mt-2 text-sm text-gray-300">
                 <summary>🔎 Sources ({msg?.document?.length})</summary>
                 <ul className="list-disc ml-4">
                   {msg?.document?.map((doc, i) => (
-                    <li key={i}>
+                    <li key={i} className='text-wrap'>
                       <span className='font-semibold text-green-100'>Page</span> {doc.metadata?.loc?.pageNumber} from{' '}
-                      <code>{doc.metadata?.source?.split('\\').pop()}</code>
+                      <div>{doc.metadata?.source?.split('\\').pop()}</div>
                       <br/>
-                      <code><span className='font-semibold text-green-100'>Content Matches from PDF:</span> {doc.pageContent}</code>
+                      <div><span className='font-semibold text-green-100'>Content Matches from PDF:</span> {doc.pageContent}</div>
                     </li>
                   ))}
                 </ul>
@@ -90,12 +96,18 @@ const ChatComponent: React.FC = () => {
         ))}
       </div>
 
-      <div className="fixed bottom-0 right-0 w-[70vw] rounded-t-2xl p-4 bg-zinc-800 border-t border-zinc-700 flex gap-2">
+      <div className="fixed bottom-0 right-0 w-full md:w-[70vw] rounded-t-2xl p-4 bg-zinc-800 border-t border-zinc-700 flex gap-2">
         <input
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSendButton();
+            }
+          }}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type your query..."
-          className="flex-1 px-4 py-2 rounded-md bg-zinc-700 text-white outline-none"
+          className="flex-1 px-5 py-2 rounded-md bg-zinc-700 text-white outline-none"
         />
         <button
           onClick={handleSendButton}

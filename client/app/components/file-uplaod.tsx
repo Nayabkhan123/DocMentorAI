@@ -2,6 +2,7 @@
 
 import { Upload } from 'lucide-react'
 import * as React from 'react'
+import toast from 'react-hot-toast'
 
 const FileUploadComponent: React.FC = () => {
   const [loading, setLoading] = React.useState(false)
@@ -25,6 +26,7 @@ const FileUploadComponent: React.FC = () => {
           isComplete = true
           setProgress(100)
           setProgressText('✅ Done! PDF processed successfully.')
+          toast.success("PDF processed successfully.")
           setLoading(false)
           setIsProcessing(false)
         } else if (data.status === 'failed') {
@@ -100,9 +102,27 @@ const FileUploadComponent: React.FC = () => {
 
     inputElement.click()
   }
-
+  const handleClear = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:8000/clear-docs", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Context cleared!");
+        
+      } else {
+        toast.error("Failed to clear context.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Error clearing context.");
+    }
+    setLoading(false);
+  };
   return (
-    <div className="bg-zinc-950 h-[100vh] text-white shadow-2xl flex flex-col justify-center items-center px-6">
+    <div className="bg-zinc-950 md:h-[100vh] text-white shadow-2xl flex flex-col justify-center items-center px-6">
       {loading ? (
         <div className="w-full max-w-md text-center">
           <p className="mb-2 text-gray-400">{progressText}</p>
@@ -116,12 +136,18 @@ const FileUploadComponent: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div
-          onClick={handleFileUpload}
-          className="bg-gray-800 p-6 rounded-2xl cursor-pointer flex flex-col items-center justify-center gap-2 hover:bg-gray-700 transition"
-        >
-          <Upload size={40} />
-          <p className="text-lg">Upload PDF File</p>
+        <div className='flex flex-col items-center justify-center gap-2'>
+          <div
+            onClick={handleFileUpload}
+            className="bg-gray-800 p-3 md:p-6 rounded-2xl cursor-pointer flex flex-col items-center justify-center gap-2 hover:bg-gray-700 transition"
+          >
+            <Upload className='w-32 md:w-48' />
+            <p className="text-md md:text-lg">Upload PDF File</p>
+            {}
+          </div>
+          <div className=''>
+              <button onClick={handleClear} className='px-2 py-1 cursor-pointer hover:text-red-500 border rounded-xl'>Delete Document</button>
+          </div>
         </div>
       )}
     </div>

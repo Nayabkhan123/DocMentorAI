@@ -18,19 +18,6 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <div className="flex items-center gap-4">
-          {/* <Link
-            href="/explore"
-            className="text-sm text-zinc-300 hover:text-white transition"
-          >
-            Explore
-          </Link>
-          <Link
-            href="/upload"
-            className="text-sm text-zinc-300 hover:text-white transition"
-          >
-            Upload
-          </Link> */}
-
           {/* Auth Buttons */}
           {!user ? (
             <SignInButton mode="modal">

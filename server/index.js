@@ -11,6 +11,7 @@ import { QdrantVectorStore } from '@langchain/qdrant';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CustomNebiusEmbeddings } from './CustomNebiusEmbeddings.js';
 import dotenv from 'dotenv';
+import { QdrantClient } from '@qdrant/js-client-rest';
 dotenv.config();
 // import OpenAI from 'openai';
 // const client = new OpenAI({
@@ -86,7 +87,7 @@ app.get('/chat',async(req,res)=>{
   const vectorStore = await QdrantVectorStore.fromExistingCollection(
     embeddings,
     {
-        url: 'http://localhost:6333',
+        url: QDRANT_URL,
         collectionName: 'langchainjs-testing'
     }
   )
@@ -98,7 +99,7 @@ app.get('/chat',async(req,res)=>{
   const genAI = new GoogleGenerativeAI(process.env.GEMINIAI_SECRET_KEY);
   const model = genAI.getGenerativeModel({ model: "models/gemini-2.0-flash" });
 
-  const SYSTEM_PROMPT = `
+  let SYSTEM_PROMPT = `
   "Answer the question thoroughly using the full context. Include important details, and explain clearly in multiple sentences if needed."
 
   Context:
@@ -107,6 +108,7 @@ app.get('/chat',async(req,res)=>{
   Question: ${userQuery}
   
   `
+  if(JSON.stringify(context)=="") SYSTEM_PROMPT=userQuery
   const result = await model.generateContent(SYSTEM_PROMPT);
   const response = result.response;
   const answer = response.text();
@@ -117,6 +119,20 @@ app.get('/chat',async(req,res)=>{
     docs:docs
   })
 })
+
+app.post("/clear-docs", async (req, res) => {
+  const client = new QdrantClient({
+    url: process.env.QDRANT_URL,
+  });
+
+  try {
+    await client.deleteCollection("langchainjs-testing");
+    return res.json({ success: true, message: "Collection deleted." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Failed to delete collection." });
+  }
+});
 
 app.listen(8000, async() => {
   console.log("server started on http://localhost:8000");

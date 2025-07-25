@@ -5,6 +5,8 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OllamaEmbeddings } from '@langchain/ollama'
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { CustomNebiusEmbeddings } from './CustomNebiusEmbeddings.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const worker = new Worker(
     'file-upload-queue',
@@ -35,12 +37,14 @@ const worker = new Worker(
         // const embeddings = new OllamaEmbeddings({
         //     model: 'nomic-embed-text',
         // })
+        console.log("🔑 Nebius key:", process.env.NEBIUS_SECRET_KEY)
 
         const embeddings = new CustomNebiusEmbeddings({
             model: 'intfloat/e5-mistral-7b-instruct',
         })
-
-        const client = new QdrantClient({ url: 'http://localhost:6333' });
+        console.log("first")
+        const client = new QdrantClient({ url: process.env.QDRANT_URL });
+        console.log("second")
 
         try {
         await client.deleteCollection('langchainjs-testing');
@@ -51,7 +55,7 @@ const worker = new Worker(
         const vectorStore = await QdrantVectorStore.fromExistingCollection(
             embeddings,
             {
-                url: 'http://localhost:6333',
+                url: QDRANT_URL,
                 collectionName: 'langchainjs-testing'
             }
         )
